@@ -1,0 +1,37 @@
+
+---
+- name: Micro-01 | VLAN + Access Port (Cisco IOS)
+  hosts: switches
+  gather_facts: no
+  collections:
+    - cisco.ios
+    - ansible.netcommon
+
+  tasks:
+    - name: Ensure VLANs
+      ios_vlans:
+        config: "{{ vlans | default([]) }}"
+        state: merged
+      when: vlans | length > 0
+
+    - name: Build L2 access config list
+      set_fact:
+        l2_cfg: "{{ (l2_cfg | default([])) + [ {'name': item.name, 'mode': 'access', 'access': {'vlan': item.vlan} } ] }}"
+      loop: "{{ access_ports | default([]) }}"
+
+    - name: Configure L2 access interfaces
+      ios_l2_interfaces:
+        config: "{{ l2_cfg | default([]) }}"
+        state: merged
+      when: (l2_cfg | default([])) | length > 0
+
+    - name: Set interface descriptions
+      ios_interfaces:
+        config: >-
+          {{
+            access_ports | map('extract', {
+              'name':'name','description':'description'
+            }) | list
+          }}
+        state: merged
+      when: access_ports | length > 0

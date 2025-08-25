@@ -1,0 +1,16 @@
+
+vlans:
+  - id: 10
+    name: USERS
+    state: present
+  - id: 99
+    name: NATIVE
+    state: present
+
+access_ports:
+  - name: GigabitEthernet1/0/1
+    vlan: 10
+    description: "Office-101 PC"
+  - name: GigabitEthernet1/0/2
+    vlan: 10
+    description: "Spare"
